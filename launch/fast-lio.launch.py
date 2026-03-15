@@ -24,11 +24,19 @@ def generate_launch_description():
         fast_lio_path, 'config', 'mid360.yaml'
     )
 
+    use_sim_time = LaunchConfiguration('use_sim_time')
+
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true'
+    )
+
     fast_lio_node = Node(
         package='fast_lio',
         executable='fastlio_mapping',
         parameters=[fast_lio_config_file,
-                    {'use_sim_time': True}],
+                    {'use_sim_time': use_sim_time}],
         output='screen'
     )
 
@@ -36,11 +44,12 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         arguments=['-d', fast_lio_rviz_config_path],
-        parameters=[{'use_sim_time': True}]
+        parameters=[{'use_sim_time': use_sim_time}]
     )
 
     ld = LaunchDescription()
 
+    ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(fast_lio_node)
     ld.add_action(rviz_node)
 

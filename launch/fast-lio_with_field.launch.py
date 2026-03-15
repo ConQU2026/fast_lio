@@ -30,12 +30,20 @@ def generate_launch_description():
         fast_lio_path, 'config', 'mid360.yaml'
     )
 
+    use_sim_time = LaunchConfiguration('use_sim_time')
+
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true'
+    )
+
     field_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(field_path, 'launch', 'rc2026_field_sim.launch.py')
         ]),
         launch_arguments={
-            'use_sim_time': 'true',
+            'use_sim_time': use_sim_time,
         }.items()
     )
 
@@ -44,7 +52,7 @@ def generate_launch_description():
             os.path.join(r2_spawner_path, 'launch', 'spawn.launch.py')
         ]),
         launch_arguments={
-            'use_sim_time': 'true',
+            'use_sim_time': use_sim_time,
             'x_pose': '4.0',
             'y_pose': '3.0',
             'z_pose': '0.04',
@@ -57,7 +65,7 @@ def generate_launch_description():
             os.path.join(joy_conventor_path, 'launch', 'joy_conventor_component.launch.py')
         ]),
         launch_arguments={
-            'use_sim_time': 'true'
+            'use_sim_time': use_sim_time
         }.items()
     )
 
@@ -65,7 +73,7 @@ def generate_launch_description():
         package='fast_lio',
         executable='fastlio_mapping',
         parameters=[fast_lio_config_file,
-                    {'use_sim_time': True}],
+                    {'use_sim_time': use_sim_time}],
         output='screen'
     )
 
@@ -73,7 +81,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         arguments=['-d', fast_lio_rviz_config_path],
-        parameters=[{'use_sim_time': True}]
+        parameters=[{'use_sim_time': use_sim_time}]
     )
 
     stair_climb_node = Node(
@@ -82,10 +90,12 @@ def generate_launch_description():
         name='stair_climb_controller',
         output='screen',
         parameters=[stair_climb_config,
-                    {'use_sim_time': True}]
+                    {'use_sim_time': use_sim_time}]
     )
 
     ld = LaunchDescription()
+
+    ld.add_action(declare_use_sim_time_cmd)
 
     # 先启动仿真环境
     ld.add_action(field_launch)
